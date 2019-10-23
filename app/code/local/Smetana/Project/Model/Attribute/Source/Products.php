@@ -16,12 +16,13 @@ class Smetana_Project_Model_Attribute_Source_Products extends Mage_Eav_Model_Ent
      */
     public function getAllOptions(): array
     {
+        $helper = Mage::helper('adminhtml');
         if (!$this->_options) {
             $this->_options = [
-                'non-selected'     => Mage::helper('adminhtml')->__('Не указан'),
-                'large_appliances' => Mage::helper('adminhtml')->__('Крупная бытовая техника'),
-                'small_appliances' => Mage::helper('adminhtml')->__('Мелкая бытовая техника'),
-                'gadgets'          => Mage::helper('adminhtml')->__('Гаджеты'),
+                'non-selected'     => $helper->__('Не указан'),
+                'large_appliances' => $helper->__('Крупная бытовая техника'),
+                'small_appliances' => $helper->__('Мелкая бытовая техника'),
+                'gadgets'          => $helper->__('Гаджеты'),
             ];
         }
 

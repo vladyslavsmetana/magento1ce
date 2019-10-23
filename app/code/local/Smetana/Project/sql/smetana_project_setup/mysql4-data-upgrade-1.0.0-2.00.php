@@ -3,49 +3,36 @@
 $installer = $this;
 $installer->startSetup();
 
-$installer = new Mage_Eav_Model_Entity_Setup('core_setup');
-$defaultAttributeSetId = Mage::getModel('catalog/product')->getDefaultAttributeSetId();
-$attributeGroups = Mage::getModel('eav/entity_attribute_group')
-    ->getResourceCollection()
-    ->setAttributeSetFilter($defaultAttributeSetId)
-    ->setSortOrder()
-    ->load();
+$installer->getConnection()->addColumn(
+    $installer->getTable('admin/user'),
+    'orders_type',
+    [
+        'type' => Varien_Db_Ddl_Table::TYPE_TEXT,
+        'length' => 256,
+        'nullable' => true,
+        'default' => null,
+        'comment' => 'Тип заказов',
+    ]
+);
 
-$entityTypeId = 'catalog_product';
+$installer->getConnection()->addColumn(
+    $installer->getTable('admin/user'),
+    'products_type',
+    [
+        'type' => Varien_Db_Ddl_Table::TYPE_TEXT,
+        'length' => 256,
+        'nullable' => true,
+        'default' => null,
+        'comment' => 'Тип товаров',
+    ]
+);
 
-foreach ($attributeGroups as $group) {
-    $groupName = $group->getData('attribute_group_name');
-    $groupId = $group->getData('attribute_group_id');
-    $installer->addAttributeGroup(
-        $entityTypeId,
-        Smetana_Project_Block_Options::PRODUCT_ATTRIBUTE_SET,
-        $groupName
-    );
+$adminRoles = [Smetana_Project_Block_Options::SPECIALIST_ROLE_NAME, Smetana_Project_Block_Options::COORDINATOR_ROLE_NAME];
 
-    $attributes = Mage::getResourceModel('catalog/product_attribute_collection')
-        ->setAttributeGroupFilter($groupId)
-        ->addVisibleFilter()
-        ->checkConfigurableProducts()
-        ->load();
-
-    if ($attributes->getSize() > 0) {
-        foreach ($attributes->getItems() as $attribute) {
-            $installer->addAttributeToSet(
-                $entityTypeId,
-                $installer->getAttributeSetId(
-                    $entityTypeId,
-                    Smetana_Project_Block_Options::PRODUCT_ATTRIBUTE_SET
-                ),
-                $installer->getAttributeGroupId(
-                    $entityTypeId,
-                    Smetana_Project_Block_Options::PRODUCT_ATTRIBUTE_SET,
-                    $groupName
-                ),
-                $attribute->getAttributeId()
-            );
-        }
-    }
-
+foreach ($adminRoles as $role) {
+    Mage::getModel('admin/roles')
+        ->setData(['name' => $role, 'role_type' => 'G'])
+        ->save();
 }
 
 $installer->endSetup();

@@ -8,36 +8,55 @@
 class Smetana_Project_Helper_Data extends Mage_Core_Helper_Abstract
 {
     /**
-     * Admin user model
+     * Current Admin user model
      *
      * @var Mage_Admin_Model_User
      */
-    static $adminUser;
+    static $currentAdminUser;
 
     /**
-     * Retrieve Admin user model
+     * Retrieve current Admin user data
      *
      * @param void
      *
-     * @return Mage_Admin_Model_User
+     * @return mixed
      */
-    public static function getAdminUser(): Mage_Admin_Model_User
+    public static function getAdminUser($param = '')
     {
-        if (!static::$adminUser) {
-            static::$adminUser = Mage::getSingleton('admin/session')->getData('user');
+        if (null === static::$currentAdminUser) {
+            static::$currentAdminUser = Mage::getSingleton('admin/session')->getData('user');
         }
 
-        return static::$adminUser;
+        if ($param == 'role') {
+            return Mage::getModel('admin/role')
+                ->load(static::$currentAdminUser->getRoles()[0])
+                ->getData('role_name');
+        }
+
+        return static::$currentAdminUser;
+    }
+
+    /**
+     * Get Order grid url
+     *
+     * @param void
+     *
+     * @return string
+     */
+    public function getOrderGridUrl($params = []): string
+    {
+        return Mage::getUrl('adminhtml/sales_order/index', $params);
     }
 
     /**
      * Add call-centre Initiator to order Model
      *
      * @param Mage_Sales_Model_Order $orderModel
+     * @param $userId
      *
      * @return Smetana_Project_Helper_Data
      */
-    public function addOrderInitiator(Mage_Sales_Model_Order $orderModel): Smetana_Project_Helper_Data
+    public function addOrderInitiator(Mage_Sales_Model_Order $orderModel, $userId = null): Smetana_Project_Helper_Data
     {
         $columns = ['order_initiator'];
 
@@ -46,7 +65,17 @@ class Smetana_Project_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         foreach ($columns as $column) {
-            $orderModel->setData($column, static::getAdminUser()->getData('user_id'))->save();
+            $orderModel->setData($column, $userId ?? static::getAdminUser()->getData('user_id'))->save();
+        }
+
+        if (null !== $userId) {
+            $queueCollection = Mage::getModel('smetana_project_model/queue')
+                ->getCollection()
+                ->addFieldToFilter('user_id', ['eq' => $userId]);
+
+            foreach ($queueCollection as $queue) {
+                $queue->delete();
+            }
         }
 
         return $this;

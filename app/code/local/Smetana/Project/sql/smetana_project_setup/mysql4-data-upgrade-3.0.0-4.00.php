@@ -3,24 +3,29 @@
 $installer = $this;
 $installer->startSetup();
 
-$installer->getConnection()->addColumn(
-    $installer->getTable('sales/order'),
-    'order_initiator',
-    [
-        'type' => Varien_Db_Ddl_Table::TYPE_TEXT,
-        'nullable' => true,
-        'comment' => 'Order Initiator',
-    ]
-);
+$installer->run('DROP TABLE IF EXISTS smetana_project_queue;');
+$table = $installer->getConnection()
+    ->newTable('smetana_project_queue')
+    ->addColumn(
+        'id',
+        Varien_Db_Ddl_Table::TYPE_INTEGER,
+        11,
+        [
+            'auto_increment' => true,
+            'unsigned' => true,
+            'nullable' => false,
+            'primary'  => true,
+        ]
+    )
+    ->addColumn(
+        'user_id',
+        Varien_Db_Ddl_Table::TYPE_INTEGER,
+        11,
+        [
+            'unique'   => true,
+            'nullable' => false,
+        ]
+    );
 
-$installer->getConnection()->addColumn(
-    $installer->getTable('sales/order'),
-    'order_primary_initiator',
-    [
-        'type' => Varien_Db_Ddl_Table::TYPE_TEXT,
-        'nullable' => true,
-        'comment' => 'Order Primary Initiator',
-    ]
-);
-
+$installer->getConnection()->createTable($table);
 $installer->endSetup();

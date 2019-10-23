@@ -2,20 +2,9 @@
 <config>
     <modules>
         <Smetana_Project>
-            <version>11.0.0</version>
+            <version>4.0.0</version>
         </Smetana_Project>
     </modules>
-    <frontend>
-        <routers>
-            <smetana_project>
-                <use>standard</use>
-                <args>
-                    <module>Smetana_Project</module>
-                    <frontName>smetana_project</frontName>
-                </args>
-            </smetana_project>
-        </routers>
-    </frontend>
     <admin>
         <routers>
             <smetana_project_admin>
@@ -27,6 +16,15 @@
             </smetana_project_admin>
         </routers>
     </admin>
+    <adminhtml>
+        <layout>
+            <updates>
+                <smetana>
+                    <file>smetana_project_admin.xml</file>
+                </smetana>
+            </updates>
+        </layout>
+    </adminhtml>
     <global>
         <resources>
             <smetana_project_setup>
@@ -64,6 +62,15 @@
                     </add_get_order_button>
                 </observers>
             </adminhtml_widget_container_html_before>
+            <controller_action_postdispatch_adminhtml_sales_order_index>
+                <observers>
+                    <add_get_order_button>
+                        <type>singleton</type>
+                        <class>Smetana_Project_Model_Observer</class>
+                        <method>pageReload</method>
+                    </add_get_order_button>
+                </observers>
+            </controller_action_postdispatch_adminhtml_sales_order_index>
             <controller_action_predispatch_adminhtml_sales_order_view>
                 <observers>
                     <check_before_view_order>
@@ -77,7 +84,16 @@
         <models>
             <smetana_project_model>
                 <class>Smetana_Project_Model</class>
+                <resourceModel>smetana_project_resource</resourceModel>
             </smetana_project_model>
+            <smetana_project_resource>
+                <class>Smetana_Project_Model_Resource</class>
+                <entities>
+                    <queue>
+                        <table>smetana_project_queue</table>
+                    </queue>
+                </entities>
+            </smetana_project_resource>
         </models>
         <helpers>
             <smeproject>
@@ -85,4 +101,16 @@
             </smeproject>
         </helpers>
     </global>
+    <crontab>
+        <jobs>
+            <order_distribution>
+                <schedule>
+                    <cron_expr>*/1 * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>smetana_project_model/cron::getOrders</model>
+                </run>
+            </order_distribution>
+        </jobs>
+    </crontab>
 </config>

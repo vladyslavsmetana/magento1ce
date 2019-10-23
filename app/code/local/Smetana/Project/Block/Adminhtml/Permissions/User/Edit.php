@@ -21,28 +21,10 @@ class Smetana_Project_Block_Adminhtml_Permissions_User_Edit extends Mage_Adminht
         $form = $this->getForm();
         $fieldset = $form->addFieldset(
             'callcentre_fieldset',
-            ['legend' => $adminHelper->__('Специалист колл-центра')]
+            ['legend' => $adminHelper->__(Smetana_Project_Block_Options::SPECIALIST_ROLE_NAME)]
         );
 
-        $roleField = $fieldset->addField(
-            'callcentre_role',
-            'select',
-            [
-                'name'      => 'callcentre_role',
-                'label'     => $adminHelper->__('Роль в колл-центре'),
-                'id'        => 'callcentre_role',
-                'title'     => $adminHelper->__('Роль в колл-центре'),
-                'class'     => 'input-select',
-                'style'     => 'width: 180px',
-                'options'   => [
-                    'non-selected' => $adminHelper->__('Не указан'),
-                    'specialist' => $adminHelper->__('Специалист колл-центра'),
-                    'coordinator' => $adminHelper->__('Координатор колл-центра'),
-                ],
-            ]
-        );
-
-        $ordersTypeField = $fieldset->addField(
+        $fieldset->addField(
             'orders_type',
             'select',
             [
@@ -60,7 +42,7 @@ class Smetana_Project_Block_Adminhtml_Permissions_User_Edit extends Mage_Adminht
             ]
         );
 
-        $productsTypeField = $fieldset->addField(
+        $fieldset->addField(
             'products_type',
             'select',
             [
@@ -72,23 +54,6 @@ class Smetana_Project_Block_Adminhtml_Permissions_User_Edit extends Mage_Adminht
                 'style'   => 'width: 180px',
                 'options' => Mage::getModel('smetana_project_model/attribute_source_products')->getAllOptions(),
             ]
-        );
-
-        $this->setChild('form_after', $this->getLayout()
-            ->createBlock('adminhtml/widget_form_element_dependence')
-            ->addFieldMap($roleField->getHtmlId(), $roleField->getName())
-            ->addFieldMap($ordersTypeField->getHtmlId(), $ordersTypeField->getName())
-            ->addFieldMap($productsTypeField->getHtmlId(), $productsTypeField->getName())
-            ->addFieldDependence(
-                $ordersTypeField->getName(),
-                $roleField->getName(),
-                'specialist'
-            )
-            ->addFieldDependence(
-                $productsTypeField->getName(),
-                $roleField->getName(),
-                'specialist'
-            )
         );
 
         $model = Mage::registry('permissions_user');

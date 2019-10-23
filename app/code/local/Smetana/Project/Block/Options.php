@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Smetana Project option names class
+ * Option names class
  *
  * Class Smetana_Project_Block_Options
  */
@@ -15,9 +15,16 @@ class Smetana_Project_Block_Options
     const PRODUCT_ATTRIBUTE_SET = 'Call-Centre';
 
     /**
-     * Path to cleaning order initiator
+     * Specialist role name
      *
      * @var String
      */
-    const PATH_TO_REMOVE_INITIATOR = 'smetana_project_admin/adminhtml_order/cleaninitiator';
+    const SPECIALIST_ROLE_NAME = 'Специалист колл-центра';
+
+    /**
+     * Coordinator role name
+     *
+     * @var String
+     */
+    const COORDINATOR_ROLE_NAME = 'Координатор колл-центра';
 }
