@@ -8,32 +8,40 @@
 class Smetana_Project_Helper_Data extends Mage_Core_Helper_Abstract
 {
     /**
-     * Current Admin user model
+     * Current Admin user Model
      *
      * @var Mage_Admin_Model_User
      */
     static $currentAdminUser;
 
     /**
-     * Retrieve current Admin user data
+     * Retrieve current Admin user Model
      *
      * @param void
      *
      * @return mixed
      */
-    public static function getAdminUser($param = '')
+    public static function getAdminUser()
     {
         if (null === static::$currentAdminUser) {
             static::$currentAdminUser = Mage::getSingleton('admin/session')->getData('user');
         }
 
-        if ($param == 'role') {
-            return Mage::getModel('admin/role')
-                ->load(static::$currentAdminUser->getRoles()[0])
-                ->getData('role_name');
-        }
-
         return static::$currentAdminUser;
+    }
+
+    /**
+     * Retrieve Admin user Role name
+     *
+     * @param void
+     *
+     * @return string
+     */
+    public function getUserRoleName(): string
+    {
+        return Mage::getModel('admin/role')
+            ->load(static::getAdminUser()->getRoles()[0])
+            ->getData('role_name');
     }
 
     /**
@@ -49,6 +57,18 @@ class Smetana_Project_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * Check button disabled param
+     *
+     * @param void
+     *
+     * @return bool
+     */
+    public function isButtonDisabled(): bool
+    {
+        return Mage::app()->getRequest()->getParam('disabled') ?? false;
+    }
+
+    /**
      * Add call-centre Initiator to order Model
      *
      * @param Mage_Sales_Model_Order $orderModel
@@ -56,7 +76,7 @@ class Smetana_Project_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @return Smetana_Project_Helper_Data
      */
-    public function addOrderInitiator(Mage_Sales_Model_Order $orderModel, $userId = null): Smetana_Project_Helper_Data
+    public function addInitiatorToSpecificOrder(Mage_Sales_Model_Order $orderModel, $userId = null): Smetana_Project_Helper_Data
     {
         $columns = ['order_initiator'];
 
@@ -66,16 +86,6 @@ class Smetana_Project_Helper_Data extends Mage_Core_Helper_Abstract
 
         foreach ($columns as $column) {
             $orderModel->setData($column, $userId ?? static::getAdminUser()->getData('user_id'))->save();
-        }
-
-        if (null !== $userId) {
-            $queueCollection = Mage::getModel('smetana_project_model/queue')
-                ->getCollection()
-                ->addFieldToFilter('user_id', ['eq' => $userId]);
-
-            foreach ($queueCollection as $queue) {
-                $queue->delete();
-            }
         }
 
         return $this;

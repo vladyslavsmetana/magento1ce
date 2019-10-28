@@ -20,6 +20,7 @@ class Smetana_Project_Block_Adminhtml_Order_Grid_Renderer extends Mage_Adminhtml
         $columnData = $row->getData($columnIndex);
 
         if ($columnData) {
+            /** @var Smetana_Project_Model_Renderer_User_Repository $userRepository */
             $userRepository = Mage::getModel('smetana_project_model/renderer_user_repository');
             $columnData = $userRepository
                 ->getAdminUserById((int)$columnData)

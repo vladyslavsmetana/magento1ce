@@ -8,13 +8,6 @@
 class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sales_Order_Grid
 {
     /**
-     * Path to cleaning order initiator
-     *
-     * @var String
-     */
-    const PATH_TO_REMOVE_INITIATOR = 'smetana_project_admin/adminhtml_order/cleaninitiator';
-
-    /**
      * Configure collection according to user data
      *
      * @return void
@@ -23,7 +16,7 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
     public function setCollection(): void
     {
         $filter = [];
-        switch (Smetana_Project_Helper_Data::getAdminUser('role')) {
+        switch (Smetana_Project_Helper_Data::getUserRoleName()) {
             case Smetana_Project_Block_Options::COORDINATOR_ROLE_NAME:
                 $filter = ['notnull' => true];
                 break;
@@ -32,6 +25,7 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
                 break;
         }
 
+        /** @var Mage_Sales_Model_Resource_Order_Collection $collection */
         $collection = Mage::getModel('sales/order')->getCollection();
         if (!empty($filter)) {
             $collection->addFieldToFilter('order_initiator', $filter);
@@ -53,9 +47,10 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
     protected function _setFilterValues(array $data): Mage_Adminhtml_Block_Sales_Order_Grid
     {
         if (
-            Smetana_Project_Helper_Data::getAdminUser('role') == Smetana_Project_Block_Options::SPECIALIST_ROLE_NAME
+            Smetana_Project_Helper_Data::getUserRoleName() == Smetana_Project_Block_Options::SPECIALIST_ROLE_NAME
             && array_key_exists('customer_email', $data)
         ) {
+            /** @var Mage_Sales_Model_Resource_Order_Collection $collection */
             $collection = Mage::getModel('sales/order')->getCollection()
                 ->addFieldToFilter('customer_email', ['eq' => $data['customer_email']]);
             $collection = $this->joinUsername($collection);
@@ -76,7 +71,7 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
     private function joinUsername(Mage_Sales_Model_Resource_Order_Collection $collection): Mage_Sales_Model_Resource_Order_Collection
     {
         $collection->getSelect()
-            ->join('admin_user', 'user_id=order_initiator', ['user_initiator' => 'username']);
+            ->joinLeft('admin_user', 'user_id=order_initiator', ['order_initiator' => 'username']);
 
         return $collection;
     }
@@ -103,10 +98,11 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
         $this->addColumnAfter(
             'order_primary_initiator',
             [
-                'header'   => Mage::helper('sales')->__('Инициатор'),
+                'header'   => Mage::helper('sales')->__('Primary Initiator'),
                 'index'    => 'order_primary_initiator',
-                'filter'    => false,
+                'type'  => 'options',
                 'sortable' => false,
+                'options' => Mage::getSingleton('smetana_project_model/order_config')->getInitiators(),
                 'renderer' => 'Smetana_Project_Block_Adminhtml_Order_Grid_Renderer',
             ],
             'customer_email'
@@ -115,21 +111,22 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
         $this->addColumnAfter(
             'order_initiator',
             [
-                'header'   => Mage::helper('sales')->__('Первичный инициатор'),
-                'index'    => 'user_initiator',
-                'filter'    => false,
+                'header'   => Mage::helper('sales')->__('Initiator'),
+                'index'    => 'order_initiator',
+                'type'  => 'options',
                 'sortable' => false,
+                'options' => Mage::getSingleton('smetana_project_model/order_config')->getInitiators(),
             ],
             'order_primary_initiator'
         );
 
         $parent = parent::_prepareColumns();
 
-        if (Smetana_Project_Helper_Data::getAdminUser('role') == Smetana_Project_Block_Options::COORDINATOR_ROLE_NAME) {
+        if (Smetana_Project_Helper_Data::getUserRoleName() == Smetana_Project_Block_Options::COORDINATOR_ROLE_NAME) {
             $actionColumn = $this->getColumn('action')->getData();
             $actionColumn['actions'][] = [
-                'caption' => Mage::helper('sales')->__('Очистить инициатора'),
-                'url'     => ['base' => self::PATH_TO_REMOVE_INITIATOR],
+                'caption' => Mage::helper('sales')->__('Clean initiator'),
+                'url'     => ['base' => Smetana_Project_Block_Options::PATH_TO_REMOVE_INITIATOR],
                 'field'   => 'order_id',
                 'data-column' => 'action',
             ];
@@ -149,13 +146,15 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
     protected function _prepareMassaction(): Mage_Adminhtml_Block_Sales_Order_Grid
     {
         $parent = parent::_prepareMassaction();
-        $this->getMassactionBlock()->addItem(
-            'initiator_clean',
-            [
-                'label'=> Mage::helper('sales')->__('Очистить инициатора'),
-                'url'  => $this->getUrl(self::PATH_TO_REMOVE_INITIATOR),
-            ]
-        );
+        if (Smetana_Project_Helper_Data::getUserRoleName() == Smetana_Project_Block_Options::COORDINATOR_ROLE_NAME) {
+            $this->getMassactionBlock()->addItem(
+                'initiator_clean',
+                [
+                    'label' => Mage::helper('sales')->__('Clean initiator'),
+                    'url' => $this->getUrl(Smetana_Project_Block_Options::PATH_TO_REMOVE_INITIATOR),
+                ]
+            );
+        }
 
         return $parent;
     }

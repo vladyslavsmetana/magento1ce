@@ -1,7 +1,13 @@
-var qqq = function() {
-    setInterval('refreshPage()', 2000);
-
+function runReload() {
+    setInterval('refreshPage()', 5000);
 }
+
 function refreshPage() {
     location.reload();
+}
+
+var url = window.location.href;
+
+if (url.search('disabled') >= 0) {
+    runReload();
 }

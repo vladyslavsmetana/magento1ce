@@ -12,6 +12,7 @@ if (!in_array(Smetana_Project_Block_Options::PRODUCT_ATTRIBUTE_SET, $attributeNa
         ->getEntityType()
         ->getId();
 
+    /** @var Mage_Eav_Model_Entity_Attribute_Set $attributeSet */
     $attributeSet = Mage::getModel('eav/entity_attribute_set')
         ->setData([
             'entity_type_id' => $entityTypeId,
@@ -20,18 +21,18 @@ if (!in_array(Smetana_Project_Block_Options::PRODUCT_ATTRIBUTE_SET, $attributeNa
         ->save();
 
     $attributeSet->initFromSkeleton($entityTypeId)->save();
+    $entityTypeId = 'catalog_product';
 
     $installer->addAttribute(
-        'catalog_product',
+        $entityTypeId,
         'product_types',
         [
             'attribute_set' => Smetana_Project_Block_Options::PRODUCT_ATTRIBUTE_SET,
-            'group' => 'General',
             'type' => 'varchar',
             'backend' => '',
             'frontend' => '',
             'sort_order' => '0',
-            'label' => 'Тип товара',
+            'label' => Mage::helper('smeproject')->__('Type of Product'),
             'input' => 'select',
             'source' => 'smetana_project_model/attribute_source_products',
             'global' => Mage_Catalog_Model_Resource_Eav_Attribute::SCOPE_GLOBAL,
@@ -48,6 +49,14 @@ if (!in_array(Smetana_Project_Block_Options::PRODUCT_ATTRIBUTE_SET, $attributeNa
             'unique' => false,
         ]
     );
+
+    $installer->addAttributeToSet(
+        $entityTypeId,
+        Smetana_Project_Block_Options::PRODUCT_ATTRIBUTE_SET,
+        'General',
+        'product_types'
+    );
+
 }
 
 $installer->endSetup();

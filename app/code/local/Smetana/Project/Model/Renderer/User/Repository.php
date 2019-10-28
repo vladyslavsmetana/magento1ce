@@ -40,6 +40,7 @@ class Smetana_Project_Model_Renderer_User_Repository
     private function getAdminUserCollection(): Mage_Admin_Model_Resource_User_Collection
     {
         if (null === $this->adminUserCollection) {
+            /** @var Mage_Admin_Model_Resource_User_Collection adminUserCollection */
             $this->adminUserCollection = Mage::getSingleton('admin/user')->getCollection();
         }
 

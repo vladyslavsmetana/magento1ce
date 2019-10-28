@@ -22,6 +22,7 @@ class Smetana_Project_Adminhtml_OrderController extends Mage_Adminhtml_Controlle
         if (!is_array($orderId)) {
             $orderId = [$orderId];
         }
+        /** @var Mage_Sales_Model_Resource_Order_Collection $collection */
         $collection = Mage::getModel('sales/order')->getCollection()
             ->addFieldToFilter('entity_id', ['in' => $orderId]);
 
@@ -42,9 +43,17 @@ class Smetana_Project_Adminhtml_OrderController extends Mage_Adminhtml_Controlle
      */
     public function setQueueAction(): Smetana_Project_Adminhtml_OrderController
     {
-        Mage::getModel('smetana_project_model/queue')
-            ->setData('user_id', Smetana_Project_Helper_Data::getAdminUser()->getId())
-            ->save();
+        $queueColumnName = 'need_order';
+
+        $lastInQueue = max(
+            Mage::getModel('admin/user')
+                ->getCollection()
+                ->getColumnValues($queueColumnName)
+            ) ?? 0;
+
+        Smetana_Project_Helper_Data::getAdminUser()
+            ->setData($queueColumnName, $lastInQueue + 1)->save();
+
         Mage::app()->getResponse()
             ->setRedirect(Mage::helper('smeproject')->getOrderGridUrl(['disabled' => true]))
             ->sendResponse();

@@ -24,6 +24,15 @@
                 </smetana>
             </updates>
         </layout>
+        <translate>
+            <modules>
+                <translations>
+                    <files>
+                        <default>Smetana.csv</default>
+                    </files>
+                </translations>
+            </modules>
+        </translate>
     </adminhtml>
     <global>
         <resources>
@@ -36,6 +45,8 @@
         <blocks>
             <adminhtml>
                 <rewrite>
+                    <sales_order>Smetana_Project_Block_Adminhtml_Order</sales_order>
+                    <sales_order_view>Smetana_Project_Block_Adminhtml_Order_View</sales_order_view>
                     <sales_order_grid>Smetana_Project_Block_Adminhtml_Order_Grid</sales_order_grid>
                     <permissions_user_edit_tab_main>Smetana_Project_Block_Adminhtml_Permissions_User_Edit</permissions_user_edit_tab_main>
                 </rewrite>
@@ -53,22 +64,13 @@
                     </add_email_data>
                 </observers>
             </sales_order_grid_collection_load_before>
-            <adminhtml_widget_container_html_before>
-                <observers>
-                    <add_get_order_button>
-                        <type>singleton</type>
-                        <class>Smetana_Project_Model_Observer</class>
-                        <method>addGetOrderButton</method>
-                    </add_get_order_button>
-                </observers>
-            </adminhtml_widget_container_html_before>
             <controller_action_postdispatch_adminhtml_sales_order_index>
                 <observers>
-                    <add_get_order_button>
+                    <page_reload_after_wait_order>
                         <type>singleton</type>
                         <class>Smetana_Project_Model_Observer</class>
-                        <method>pageReload</method>
-                    </add_get_order_button>
+                        <method>orderPageReload</method>
+                    </page_reload_after_wait_order>
                 </observers>
             </controller_action_postdispatch_adminhtml_sales_order_index>
             <controller_action_predispatch_adminhtml_sales_order_view>
@@ -108,7 +110,7 @@
                     <cron_expr>*/1 * * * *</cron_expr>
                 </schedule>
                 <run>
-                    <model>smetana_project_model/cron::getOrders</model>
+                    <model>smetana_project_model/cron::ordersDistribution</model>
                 </run>
             </order_distribution>
         </jobs>

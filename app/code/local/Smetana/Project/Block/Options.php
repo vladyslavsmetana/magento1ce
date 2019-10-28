@@ -19,12 +19,19 @@ class Smetana_Project_Block_Options
      *
      * @var String
      */
-    const SPECIALIST_ROLE_NAME = 'Специалист колл-центра';
+    const SPECIALIST_ROLE_NAME = 'Call-center specialist';
 
     /**
      * Coordinator role name
      *
      * @var String
      */
-    const COORDINATOR_ROLE_NAME = 'Координатор колл-центра';
+    const COORDINATOR_ROLE_NAME = 'Call-center coordinator';
+
+    /**
+     * Path to cleaning order initiator
+     *
+     * @var String
+     */
+    const PATH_TO_REMOVE_INITIATOR = 'smetana_project_admin/adminhtml_order/cleaninitiator';
 }

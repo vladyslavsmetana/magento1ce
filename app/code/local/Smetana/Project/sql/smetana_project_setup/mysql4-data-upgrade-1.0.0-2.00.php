@@ -11,7 +11,7 @@ $installer->getConnection()->addColumn(
         'length' => 256,
         'nullable' => true,
         'default' => null,
-        'comment' => 'Тип заказов',
+        'comment' => Mage::helper('smeproject')->__('Order Types'),
     ]
 );
 
@@ -23,7 +23,18 @@ $installer->getConnection()->addColumn(
         'length' => 256,
         'nullable' => true,
         'default' => null,
-        'comment' => 'Тип товаров',
+        'comment' => Mage::helper('smeproject')->__('Product Types'),
+    ]
+);
+
+$installer->getConnection()->addColumn(
+    $installer->getTable('admin/user'),
+    'need_order',
+    [
+        'type' => Varien_Db_Ddl_Table::TYPE_INTEGER,
+        'nullable' => true,
+        'default' => null,
+        'comment' => Mage::helper('smeproject')->__('Need Order'),
     ]
 );
 

@@ -8,18 +8,45 @@
 class Smetana_Project_Model_Cron
 {
     /**
+     * There are no matching orders parameter
+     *
+     * @var String
+     */
+    const NO_FITTED_ORDERS = 'nothing';
+
+    /**
+     * Orders Distribution process
+     *
+     * @param void
+     *
+     * @return Smetana_Project_Model_Cron
+     */
+    public function ordersDistribution(): Smetana_Project_Model_Cron
+    {
+        $email = '';
+
+        while ($email != self::NO_FITTED_ORDERS) {
+            $email = $this->assignOrders($email);
+        }
+
+        return $this;
+    }
+
+    /**
      * Assign Order to call-centre specialist
      *
      * @param string $email
      * @param Mage_Admin_Model_User|null
      *
-     * @return Smetana_Project_Model_Cron
+     * @return string
      */
-    public function getOrders($email = '', $user = null): Smetana_Project_Model_Cron
+    private function assignOrders(string $email = ''): string
     {
-        $userModel = $user ?? $this->getUserFromQueue();
+        /** @var Mage_Admin_Model_User|null $userFromQueue */
+        $userFromQueue = $this->getUserFromQueue();
 
-        if (null !== $userModel) {
+        if (!is_null($userFromQueue)) {
+            /** @var Mage_Sales_Model_Resource_Order_Collection $orderCollection */
             $orderCollection = Mage::getModel('sales/order')->getCollection()
                 ->addFieldToFilter('order_initiator', ['null' => true])
                 ->setOrder('entity_id', 'DESC');
@@ -31,22 +58,24 @@ class Smetana_Project_Model_Cron
             foreach ($orderCollection as $order) {
                 if (!$this->checkTime(
                     explode(' ', $order->getData('created_at'))[1],
-                    $userModel->getData('orders_type')
+                    $userFromQueue->getData('orders_type')
                 )) {
                     continue;
                 }
 
-                if ($this->checkProductType($order, $userModel->getData('products_type'))) {
-                    Mage::helper('smeproject')->addOrderInitiator($order, $userModel->getData('user_id'));
-                    $this->getOrders($order->getData('customer_email'), $userModel);
+                if ($this->checkProductType($order, $userFromQueue->getData('products_type'))) {
+                    Mage::helper('smeproject')->addInitiatorToSpecificOrder($order, $userFromQueue->getData('user_id'));
 
-                    return $this;
+                    return $order->getData('customer_email');
                 }
             }
-            Mage::app()->getResponse()->setRedirect(Mage::helper('smeproject')->getOrderGridUrl())->sendResponse();
+
+            if ($email != '') {
+                $this->removeUserFromQueue($userFromQueue);
+            }
         }
 
-        return $this;
+        return self::NO_FITTED_ORDERS;
     }
 
     /**
@@ -59,16 +88,31 @@ class Smetana_Project_Model_Cron
     private function getUserFromQueue()
     {
         $userModel = null;
-        $queueCollection = Mage::getModel('smetana_project_model/queue')
-            ->getCollection();
+        /** @var Mage_Admin_Model_Resource_User_Collection $userCollection */
+        $userCollection = Mage::getModel('admin/user')
+            ->getCollection()
+            ->addFieldToFilter('need_order', ['notnull' => true])
+            ->setOrder('need_order', 'ASC');
 
-        if ($queueCollection->getSize() > 0) {
-            $userId = $queueCollection->getFirstItem()
-                ->getData('user_id');
-            $userModel = Mage::getModel('admin/user')->load($userId);
+        if ($userCollection->getSize() > 0) {
+            $userModel = $userCollection->getFirstItem();
         }
 
         return $userModel;
+    }
+
+    /**
+     * Remove specific user from distribution queue
+     *
+     * @param Mage_Admin_Model_User $userFromQueue
+     *
+     * @return Smetana_Project_Model_Cron
+     */
+    private function removeUserFromQueue(Mage_Admin_Model_User $userFromQueue): Smetana_Project_Model_Cron
+    {
+        $userFromQueue->setData('need_order', null)->save();
+
+        return $this;
     }
 
     /**
@@ -83,15 +127,18 @@ class Smetana_Project_Model_Cron
     {
         $eight = '08:00:00';
         $twenty = '20:00:00';
+        $allowed = true;
 
         switch ($timeType) {
             case 'night':
-                return $createdAt > $twenty || $createdAt < $eight;
+                $allowed = $createdAt > $twenty || $createdAt < $eight;
+                break;
             case 'day':
-                return $createdAt > $eight && $createdAt < $twenty;
-            default:
-                return true;
+                $allowed = $createdAt > $eight && $createdAt < $twenty;
+                break;
         }
+
+        return $allowed;
     }
 
     /**
@@ -109,6 +156,7 @@ class Smetana_Project_Model_Cron
             $orderProducts[] = $item->getData('product_id');
         }
 
+        /** @var Mage_Catalog_Model_Resource_Product_Collection $collection */
         $collection = Mage::getModel('catalog/product')->getCollection()
             ->addAttributeToSelect('*')
             ->addFieldToFilter('entity_id', ['in' => $orderProducts]);
@@ -117,11 +165,7 @@ class Smetana_Project_Model_Cron
             $collection->addFieldToFilter('product_types', $filter);
         }
 
-        if ($collection->getSize() > 0) {
-            return true;
-        }
-
-        return false;
+        return $collection->getSize() > 0;
     }
 
     /**
@@ -136,22 +180,28 @@ class Smetana_Project_Model_Cron
         $largeAppliances = 'large_appliances';
         $smallAppliances = 'small_appliances';
         $gadgets = 'gadgets';
+        $filter = [];
 
         switch ($userProductType) {
             case $largeAppliances:
-                return [['in' => $largeAppliances]];
+                $filter = [['in' => $largeAppliances]];
+                break;
             case $smallAppliances:
-                return [
+                $filter = [
                     ['in' => $smallAppliances],
                     ['nin' => [$largeAppliances]],
                 ];
+                break;
             case $gadgets:
-                return [
+                $filter = [
                     ['in' => $gadgets],
                     ['nin' => [$largeAppliances, $smallAppliances]],
                 ];
+                break;
             default:
-                return [['nin' => [$largeAppliances, $smallAppliances, $gadgets]]];
+                $filter = [['nin' => [$largeAppliances, $smallAppliances, $gadgets]]];
         }
+
+        return $filter;
     }
 }
