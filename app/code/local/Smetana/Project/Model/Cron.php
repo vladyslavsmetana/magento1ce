@@ -19,17 +19,19 @@ class Smetana_Project_Model_Cron
      *
      * @param void
      *
-     * @return Smetana_Project_Model_Cron
+     * @return void
      */
-    public function ordersDistribution(): Smetana_Project_Model_Cron
+    public function ordersDistribution(): void
     {
-        $email = '';
+        while (true) {
+            $email = '';
 
-        while ($email != self::NO_FITTED_ORDERS) {
-            $email = $this->assignOrders($email);
+            while ($email != self::NO_FITTED_ORDERS) {
+                $email = $this->assignOrders($email);
+            }
+
+            sleep(3);
         }
-
-        return $this;
     }
 
     /**

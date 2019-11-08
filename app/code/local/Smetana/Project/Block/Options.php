@@ -34,4 +34,11 @@ class Smetana_Project_Block_Options
      * @var String
      */
     const PATH_TO_REMOVE_INITIATOR = 'smetana_project_admin/adminhtml_order/cleaninitiator';
+
+    /**
+     * Path to Admin Order grid
+     *
+     * @var String
+     */
+    const PATH_TO_ORDER_GRID = 'adminhtml/sales_order/index';
 }

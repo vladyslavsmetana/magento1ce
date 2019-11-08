@@ -29,7 +29,7 @@ class Smetana_Project_Adminhtml_OrderController extends Mage_Adminhtml_Controlle
         foreach ($collection as $order) {
             $order->setData('order_initiator', null)->save();
         }
-        Mage::app()->getResponse()->setRedirect(Mage::helper('smeproject')->getOrderGridUrl()) ->sendResponse();
+        $this->_redirect(Smetana_Project_Block_Options::PATH_TO_ORDER_GRID);
 
         return $this;
     }
@@ -53,10 +53,7 @@ class Smetana_Project_Adminhtml_OrderController extends Mage_Adminhtml_Controlle
 
         Smetana_Project_Helper_Data::getAdminUser()
             ->setData($queueColumnName, $lastInQueue + 1)->save();
-
-        Mage::app()->getResponse()
-            ->setRedirect(Mage::helper('smeproject')->getOrderGridUrl(['disabled' => true]))
-            ->sendResponse();
+        $this->_redirect(Smetana_Project_Block_Options::PATH_TO_ORDER_GRID, ['disabled' => true]);
 
         return $this;
     }

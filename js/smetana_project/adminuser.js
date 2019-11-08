@@ -4,7 +4,7 @@ $j(document).ready(function() {
     function checkRole() {
         var $checked = $j('.radio').filter(':checked');
         var userRole = $checked.parent().next().text().trim();
-        if (userRole != 'Специалист колл-центра') {
+        if (userRole != 'Call-center specialist') {
             $j('.entry-edit-head').last().hide();
             $j('#user_callcentre_fieldset').hide();
         } else {

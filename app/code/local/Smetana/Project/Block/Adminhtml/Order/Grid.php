@@ -8,6 +8,13 @@
 class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sales_Order_Grid
 {
     /**
+     * Path to Admin user repository model
+     *
+     * @var String
+     */
+    const PATH_TO_USER_REPOSITORY = 'smetana_project_model/renderer_user_repository';
+
+    /**
      * Configure collection according to user data
      *
      * @return void
@@ -102,7 +109,7 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
                 'index'    => 'order_primary_initiator',
                 'type'  => 'options',
                 'sortable' => false,
-                'options' => Mage::getSingleton('smetana_project_model/order_config')->getInitiators(),
+                'options' => Mage::getSingleton(self::PATH_TO_USER_REPOSITORY)->getInitiators(),
                 'renderer' => 'Smetana_Project_Block_Adminhtml_Order_Grid_Renderer',
             ],
             'customer_email'
@@ -115,7 +122,7 @@ class Smetana_Project_Block_Adminhtml_Order_Grid extends Mage_Adminhtml_Block_Sa
                 'index'    => 'order_initiator',
                 'type'  => 'options',
                 'sortable' => false,
-                'options' => Mage::getSingleton('smetana_project_model/order_config')->getInitiators(),
+                'options' => Mage::getSingleton(self::PATH_TO_USER_REPOSITORY)->getInitiators(),
             ],
             'order_primary_initiator'
         );

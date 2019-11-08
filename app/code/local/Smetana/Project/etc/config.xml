@@ -69,7 +69,7 @@
                     <page_reload_after_wait_order>
                         <type>singleton</type>
                         <class>Smetana_Project_Model_Observer</class>
-                        <method>orderPageReload</method>
+                        <method>skipPageReload</method>
                     </page_reload_after_wait_order>
                 </observers>
             </controller_action_postdispatch_adminhtml_sales_order_index>

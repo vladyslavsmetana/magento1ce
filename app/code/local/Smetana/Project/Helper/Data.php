@@ -21,7 +21,7 @@ class Smetana_Project_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @return mixed
      */
-    public static function getAdminUser()
+    public static function getAdminUser(): Mage_Admin_Model_User
     {
         if (null === static::$currentAdminUser) {
             static::$currentAdminUser = Mage::getSingleton('admin/session')->getData('user');
@@ -39,21 +39,55 @@ class Smetana_Project_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getUserRoleName(): string
     {
-        return Mage::getModel('admin/role')
-            ->load(static::getAdminUser()->getRoles()[0])
-            ->getData('role_name');
+        /** @var Mage_Admin_Model_User $user */
+        $user = static::getAdminUser();
+
+        return $user->getRole()->getRoleName();
+    }
+
+    /**
+     * Get user orders button data
+     *
+     * @param void
+     *
+     * @return array
+     */
+    public function getUserOrders(): array
+    {
+        $data = [];
+        if (static::getUserRoleName() == Smetana_Project_Block_Options::SPECIALIST_ROLE_NAME) {
+            /** @var Mage_Sales_Model_Resource_Order_Collection $collection */
+            $collection = Mage::getModel('sales/order')
+                ->getCollection()
+                ->addFieldToFilter(
+                    'order_initiator',
+                    ['eq' => static::getAdminUser()->getData('user_id')]
+                );
+
+            if (!in_array('pending', $collection->getColumnValues('status'))) {
+                $isButtonDisabled = $this->isButtonDisabled();
+                $data = [
+                    'label' => $isButtonDisabled
+                        ? __('Waiting for the order')
+                        : __('Get Order'),
+                    'disabled' => $isButtonDisabled,
+                    'onclick' => 'disableElements(\'my-button\');setLocation(\'' . Mage::helper('adminhtml')
+                            ->getUrl('smetana_project_admin/adminhtml_order/setqueue') . '\')',
+                ];
+            }
+        }
+
+        return $data;
     }
 
     /**
      * Get Order grid url
      *
-     * @param void
-     *
      * @return string
      */
-    public function getOrderGridUrl($params = []): string
+    public function getOrderGridUrl(): string
     {
-        return Mage::getUrl('adminhtml/sales_order/index', $params);
+        return Mage::getUrl(Smetana_Project_Block_Options::PATH_TO_ORDER_GRID);
     }
 
     /**

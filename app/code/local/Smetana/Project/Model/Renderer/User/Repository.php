@@ -15,6 +15,26 @@ class Smetana_Project_Model_Renderer_User_Repository
     private $adminUserCollection;
 
     /**
+     * Retrieve all allowed initiators
+     *
+     * @param void
+     *
+     * @return array
+     */
+    public function getInitiators(): array
+    {
+        $options = [];
+
+        foreach ($this->getAdminUserCollection() as $user) {
+            if ($user->getRole()->getData('role_name') == Smetana_Project_Block_Options::SPECIALIST_ROLE_NAME) {
+                $options[$user->getId()] = $user->getData('username');
+            }
+        }
+
+        return $options;
+    }
+
+    /**
      * Get Admin user Model by ID
      *
      * @param int $id
